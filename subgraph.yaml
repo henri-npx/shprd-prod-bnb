@@ -1,0 +1,106 @@
+# MAKE SURE TO MODIFY
+# 1. network
+# 2. startBlock
+# 3. address : Factory + in helper.ts
+# 4. package.json
+
+# 19/10/22 11H00 AM
+# Deployed to https://thegraph.com/explorer/subgraph/henri-npx/shprd-beta-bnb
+# Subgraph endpoints:
+# Queries (HTTP):     https://api.thegraph.com/subgraphs/name/henri-npx/shprd-beta-bnb
+# Subscriptions (WS): wss://api.thegraph.com/subgraphs/name/henri-npx/shprd-beta-bnb
+
+specVersion: 0.0.4
+description: Shprd - The Asset Manager of Web3
+schema:
+    file: ./schema.graphql
+dataSources:
+    - kind: ethereum/contract
+      name: Factory
+      network: bsc # TODO : OK
+      source:
+          abi: Factory
+          address: "0xF0EE0b31aAE29f0bEa8Ff806c101377Fc92e4FFA" # TODO : OK
+          startBlock: 22306726 # TODO : OK
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          file: ./src/mappings/factory.ts
+          entities:
+              - Vault
+          abis:
+              - name: Factory
+                file: ./abis/Factory.json
+              - name: Vault
+                file: ./abis/Vault.json
+              - name: ERC20
+                file: ./abis/ERC20.json
+          eventHandlers:
+              - event: VaultCreated(address,address,address[])
+                handler: handleCreateVault # OK
+              - event: SetAccessManager(address)
+                handler: handleSetAccessManager
+              - event: SetFeesManager(address)
+                handler: handleSetFeesManager
+              - event: SetHarvester(address)
+                handler: handleSetHarvester
+              - event: SetSwapContracts(address,address)
+                handler: handleSetSwapContracts
+              - event: SetSwapAdapter(address)
+                handler: handleSetSwapAdapter
+              - event: AddTokensAndPriceFeeds(address[],address[])
+                handler: handleAddTokensAndPriceFeeds
+              - event: RemoveTokensAndPriceFeeds(address[])
+                handler: handleRemoveTokensAndPriceFeeds
+              - event: OwnershipTransferred(indexed address,indexed address)
+                handler: handleOwnershipTransferred
+          blockHandlers:
+              - handler: handleNewBlock # OK
+templates:
+    - kind: ethereum/contract
+      name: Vault
+      network: bsc # TODO : OK
+      source:
+          abi: Vault
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          file: ./src/mappings/vault.ts
+          entities:
+              - Vault
+          abis:
+              - name: Vault
+                file: ./abis/Vault.json
+              - name: Factory
+                file: ./abis/Factory.json
+              - name: ERC20
+                file: ./abis/ERC20.json
+          eventHandlers:
+              - event: Deposit(uint256,uint256)
+                handler: handleDeposit
+              - event: HarvestManagementFees(uint256,uint256)
+                handler: handleHarvestManagementFees
+              - event: HarvestPerformanceFees(uint256,uint256)
+                handler: handleHarvestPerformanceFees
+              - event: Rebalance(uint256[],uint256[])
+                handler: handleRebalance
+              - event: Redeem(uint256,uint256)
+                handler: handleRedeem
+              - event: AddAsset(address)
+                handler: handleAddAsset
+              - event: SetShareTransferability(bool)
+                handler: handleSetShareTransferability
+              - event: SetSecurityProps((uint256,uint256,uint256,uint256,uint256,uint256,uint256))
+                handler: handleSetSecurityProps
+              - event: SetConfigProps((bool,uint8,string,string))
+                handler: handleSetConfigProps
+              - event: SetFeesProps((address,uint256,uint256,uint256,uint256,uint256))
+                handler: handleSetFeesProps
+              - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+                handler: handleRoleAdminChanged
+              - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+                handler: handleRoleGranted
+              - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+                handler: handleRoleRevoked

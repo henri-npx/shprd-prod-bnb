@@ -1,0 +1,161 @@
+type Factory @entity {
+	id: ID!
+	vaultCount: Int!
+	vaults: [Vault!]! @derivedFrom(field: "factory")
+
+	tokens: [Bytes!]!
+	feesManager: Bytes!
+	accessManager: Bytes!
+	harvester: Bytes!
+	swapRouter: Bytes!
+	swapProxy: Bytes!
+	swapAdapter: Bytes!
+
+	# Snapshots
+	lastSnapshotBlockTimestamp: BigInt!
+	lastSnapshotBlockNumber: BigInt!
+}
+
+type Vault @entity {
+	id: ID!
+	factory: Factory!
+	vault: Bytes! # address
+	creator: Bytes! # address
+	# share: Bytes! # address
+	# tokens: [Bytes!]! # address[]
+	accManagementFeesToDAO: BigInt!
+	accPerformanceFeesToDAO: BigInt!
+	accManagementFeesToStrategists: BigInt!
+	accPerformanceFeesToStrategists: BigInt!
+
+	deposits: [Deposit!]! @derivedFrom(field: "vault")
+	rebalances: [Rebalance!]! @derivedFrom(field: "vault")
+	redemptions: [Redeem!]! @derivedFrom(field: "vault")
+
+	depositsCount: Int!
+	rebalancesCount: Int!
+	redemptionsCount: Int!
+
+	managementFeesHarvests: [HarvestManagementFees!]! @derivedFrom(field: "vault")
+	performanceFeesHarvests: [HarvestPerformanceFees!]! @derivedFrom(field: "vault")
+
+	snapshots: [VaultSnapshot!]! @derivedFrom(field: "vault")
+
+	# RoLes
+	admins: [Bytes!]! # address[]
+	strategists: [Bytes!]! # address[]
+	harvesters: [Bytes!]! # address[]
+	# Token Struct State
+	tokens: [Bytes!]!
+	tokensPriceFeedAddress: [Bytes!]!
+	tokensPriceFeedPrecision: [BigInt!]!
+	tokensDenominator: [BigInt!]!
+	# Constant Props Struct State
+	factoryAddress: Bytes!
+	createdAt: BigInt!
+	share: Bytes!
+	# Config Props Struct State
+	paused: Boolean!
+	verified: Int!
+	name: String!
+	description: String!
+	# Security Props Struct State
+	maxAUM: BigInt!
+	maxLossSwap: BigInt!
+	minAmountDeposit: BigInt!
+	maxAmountDeposit: BigInt!
+	minFrequencySwap: BigInt!
+	minSecurityTime: BigInt!
+	minHarvestThreshold: BigInt!
+	# Fees Props Struct State
+	beneficiary: Bytes!
+	exitFees: BigInt
+	managementFeesRate: BigInt
+	managementFeesToStrategist: BigInt
+	performanceFeesRate: BigInt
+	performanceFeesToStrategist: BigInt
+	# History Props Struct State
+	highWaterMark: BigInt!
+	prevRebalanceSignals: [BigInt!]!
+	prevSwap: BigInt!
+	prevMngHarvest: BigInt!
+
+	balances: [BigInt!]!
+	positions: [BigInt!]!
+	tvl: BigInt!
+	sharePrice: BigInt!
+	# Fees - In shares
+	ongoingPerformanceFees: BigInt!
+	ongoingManagementFees: BigInt!
+
+	shareTransferability: Boolean!
+}
+
+type VaultSnapshot @entity {
+	id: ID!
+	factory: Factory!
+	vault: Vault!
+
+	pendingPerfFees: BigInt!
+	pendingMngFees: BigInt!
+
+	timestamp: BigInt!
+	triggeredByEvent: Boolean!
+
+	positions: [BigInt!]!
+	sharePrice: BigInt!
+	tvl: BigInt!
+
+	assetsPrices: [BigInt!]! # USD-Priced
+	assetsBalances: [BigInt!]!
+	tokens: [Bytes!]! # address[]
+}
+
+type Deposit @entity {
+	id: ID!
+	vault: Vault!
+	from: Bytes!
+	baseTokenAmountIn: BigInt!
+	sharesMinted: BigInt!
+	timestamp: BigInt!
+	sharePriceAfter: BigInt!
+}
+
+type Redeem @entity {
+	id: ID!
+	vault: Vault!
+	from: Bytes!
+	shareBurned: BigInt!
+	amountReceived: BigInt!
+	timestamp: BigInt!
+	sharePriceAfter: BigInt!
+}
+
+type Rebalance @entity {
+	id: ID!
+	vault: Vault!
+	from: Bytes!
+	desiredSignals: [BigInt!]! # Desired
+	currentSignals: [BigInt!]! # Observed
+	recordedSignals: [BigInt!]! # Queried in TG
+	timestamp: BigInt!
+	sharePriceAfter: BigInt!
+}
+
+type HarvestManagementFees @entity {
+	id: ID!
+	vault: Vault!
+	from: Bytes!
+	amountToDAO: BigInt!
+	amountToStrategist: BigInt!
+	timestamp: BigInt!
+}
+
+type HarvestPerformanceFees @entity {
+	id: ID!
+	vault: Vault!
+	from: Bytes!
+	amountToDAO: BigInt!
+	amountToStrategist: BigInt!
+	timestamp: BigInt!
+}

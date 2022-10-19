@@ -1,0 +1,17 @@
+{
+  "name": "Shprd",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "codegen-build": "graph codegen --output-dir src/types/ ; graph build",
+    "deploy": "graph deploy --product hosted-service henri-npx/shprd-beta-bnb --node https://api.thegraph.com/deploy/"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.29.2",
+    "@graphprotocol/graph-ts": "0.26.0"
+  },
+  "devDependencies": {
+    "matchstick-as": "^0.5.0"
+  }
+}

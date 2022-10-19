@@ -1,0 +1,97 @@
+# To update - On both dataSources
+
+# Network
+# Addres Factory
+# Add/Remove Tokenomics Section
+# StartBlock
+
+# ToDo ALL Inherited Events (roLes, etc)
+# Factory : transferOwnership
+# Vault: AccessControL Events
+
+specVersion: 0.0.4
+description: Shprd - The Asset Manager of Web3
+schema:
+    file: ./schema.graphql
+dataSources:
+    - kind: ethereum/contract
+      name: Factory
+      network: matic # HERE
+      source:
+          abi: Factory
+          address: "0xc04eD88c05FcDe0f94305598eB14F1624b091A5c" # HERE
+          startBlock: 31140720 # HERE
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          file: ./src/mappings/factory.ts
+          entities:
+              - Vault
+          abis:
+              - name: Factory
+                file: ./abis/Factory.json
+              - name: Vault
+                file: ./abis/Vault.json
+              - name: ERC20
+                file: ./abis/ERC20.json
+          eventHandlers:
+              - event: VaultCreated(address,address,address[])
+                handler: handleCreateVault # OK
+              - event: SetAccessManager(address)
+                handler: handleSetAccessManager
+              - event: SetFeesManager(address)
+                handler: handleSetFeesManager
+              - event: SetHarvester(address)
+                handler: handleSetHarvester
+              - event: SetSwapContracts(address,address)
+                handler: handleSetSwapContracts
+              - event: SetSwapAdapter(address)
+                handler: handleSetSwapAdapter
+              - event: AddTokensAndPriceFeeds(address[],address[])
+                handler: handleAddTokensAndPriceFeeds
+              - event: RemoveTokensAndPriceFeeds(address[])
+                handler: handleRemoveTokensAndPriceFeeds
+          blockHandlers:
+              - handler: handleNewBlock # OK
+templates:
+    - kind: ethereum/contract
+      name: Vault
+      network: matic # HERE
+      source:
+          abi: Vault
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          file: ./src/mappings/vault.ts
+          entities:
+              - Vault
+          abis:
+              - name: Vault
+                file: ./abis/Vault.json
+              - name: Factory
+                file: ./abis/Factory.json
+              - name: ERC20
+                file: ./abis/ERC20.json
+          eventHandlers:
+              - event: Deposit(uint256,uint256)
+                handler: handleDeposit
+              - event: HarvestManagementFees(uint256,uint256)
+                handler: handleHarvestManagementFees
+              - event: HarvestPerformanceFees(uint256,uint256)
+                handler: handleHarvestPerformanceFees
+              - event: Rebalance(uint256[],uint256[])
+                handler: handleRebalance
+              - event: Redeem(uint256,uint256)
+                handler: handleRedeem
+              - event: AddAsset(address)
+                handler: handleAddAsset
+              - event: SetShareTransferability(bool)
+                handler: handleSetShareTransferability
+              - event: SetSecurityProps((uint256,uint256,uint256,uint256,uint256,uint256,uint256))
+                handler: handleSetSecurityProps
+              - event: SetConfigProps((bool,uint8,string,string))
+                handler: handleSetConfigProps
+              - event: SetFeesProps((address,uint256,uint256,uint256,uint256,uint256))
+                handler: handleSetFeesProps
