@@ -63,6 +63,11 @@ export const updateVault = (vault: Vault): Vault => {
   const bindedFactory = FactoryContract.bind(Address.fromString(FACTORY_ADDRESS));
   const bindedVault = VaultContract.bind(Address.fromString(vault.id));
 
+  // Vault State
+  const vaultState = bindedFactory.getVaultState(Address.fromString(vault.id));
+  // Share State
+  const shareState = bindedFactory.getShareState(Address.fromString(vault.id));
+
   // Update Vault Storage
   const tokensLength = bindedVault.tokensLength().toI32();
   const tokens = new Array<Bytes>(tokensLength);
@@ -141,14 +146,17 @@ export const updateVault = (vault: Vault): Vault => {
   vault.minHarvestThreshold = securityProps.minHarvestThreshold;
 
   // State Left
-  const vaultState = bindedFactory.getVaultState(Address.fromString(vault.id));
+  const sharePrice = vaultState.value9;
+  const pendingPerfFees = bindedVault.getPerformanceFees().value0;
+  const pendingManagementFees = bindedVault.getManagementFees().value0;
+  const shareSupply = shareState.value4;
   vault.balances = vaultState.value6;
   vault.positions = vaultState.value7;
   vault.tvl = vaultState.value8;
-  vault.sharePrice = vaultState.value9;
-  const ongoingFees = vaultState.value10;
-  vault.ongoingManagementFees = ongoingFees[0];
-  vault.ongoingPerformanceFees = ongoingFees[1];
+  vault.sharePrice = sharePrice;
+  vault.ongoingManagementFees = pendingManagementFees;
+  vault.ongoingPerformanceFees = pendingPerfFees;
+  vault.netSharePrice  = sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees).plus(pendingPerfFees));
 
   vault.save();
 
@@ -174,6 +182,7 @@ export function _createVault(event: VaultCreated, factory: Factory): Vault {
   vault.depositsCount = 0;
   vault.rebalancesCount = 0;
   vault.redemptionsCount = 0;
+  vault.netSharePrice = BigInt.fromI32(1);
   const updatedVault = updateVault(vault);
   updatedVault.save();
   return vault;
@@ -211,11 +220,17 @@ export function newSnapshot(
   triggeredByEvent: boolean,
 ): void {
   const vault = VaultContract.bind(vaultAddress);
+  const bindedFactory = FactoryContract.bind(Address.fromString(factory.id));
   const entityName = FACTORY_ADDRESS + "-" + vaultAddress.toHexString() + "-" + block.number.toString();
   const status = vault.getVaultStatus();
   const tokensLength = vault.tokensLength().toI32();
   const assetsPrices = new Array<BigInt>(tokensLength);
   const newTokens = new Array<Bytes>(tokensLength);
+  const shareState = bindedFactory.getShareState(vaultAddress);
+  const sharePrice = status.value2;
+  const pendingPerfFees = vault.getPerformanceFees().value0;
+  const pendingManagementFees = vault.getManagementFees().value0;
+  const shareSupply = shareState.value4;
   for (let y = 0; y < tokensLength; y++) {
     const asset = vault.tokens(BigInt.fromI32(y));
     const price = vault.getLatestPrice(asset.value1);
@@ -231,9 +246,10 @@ export function newSnapshot(
   snapshot.tokens = newTokens;
   snapshot.positions = status.value0;
   snapshot.tvl = status.value1;
-  snapshot.sharePrice = status.value2;
-  snapshot.pendingPerfFees = vault.getManagementFees().value0;
-  snapshot.pendingMngFees = vault.getPerformanceFees().value0;
+  snapshot.sharePrice = sharePrice;
+  snapshot.netSharePrice = sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees).plus(pendingPerfFees));
+  snapshot.pendingPerfFees = pendingPerfFees;
+  snapshot.pendingMngFees = pendingManagementFees;
   snapshot.timestamp = block.timestamp;
   snapshot.triggeredByEvent = triggeredByEvent;
   snapshot.save();
@@ -353,7 +369,7 @@ export function handleNewBlock(block: ethereum.Block): void {
   for (let x = 0; x < vaults.length; x++) {
     const vAddress = vaults[x];
     newSnapshot(factory, vAddress, block, false);
-    let vault = Vault.load(vAddress.toString());
+    let vault = Vault.load(vAddress.toHexString());
     if (vault === null) continue;
     updateVault(vault);
   }
