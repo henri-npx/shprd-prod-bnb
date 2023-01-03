@@ -156,9 +156,9 @@ export const updateVault = (vault: Vault): Vault => {
   vault.sharePrice = sharePrice;
   vault.ongoingManagementFees = pendingManagementFees;
   vault.ongoingPerformanceFees = pendingPerfFees;
-  vault.netSharePrice  = sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees).plus(pendingPerfFees));
-  vault.sharePriceNetFromMngFees = sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees));
-  vault.sharePriceNetFromPerfFees = sharePrice.times(shareSupply).div(shareSupply.plus(pendingPerfFees));
+  vault.netSharePrice = (shareSupply == BigInt.fromI32(0)) ?  BigInt.fromI32(1) : sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees).plus(pendingPerfFees));
+  vault.sharePriceNetFromMngFees = (shareSupply == BigInt.fromI32(0)) ? BigInt.fromI32(1) : sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees));
+  vault.sharePriceNetFromPerfFees = (shareSupply == BigInt.fromI32(0)) ? BigInt.fromI32(1) : sharePrice.times(shareSupply).div(shareSupply.plus(pendingPerfFees));
   vault.save();
   return vault;
 }
@@ -249,9 +249,9 @@ export function newSnapshot(
   snapshot.positions = status.value0;
   snapshot.tvl = status.value1;
   snapshot.sharePrice = sharePrice;
-  snapshot.netSharePrice = sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees).plus(pendingPerfFees));
-  snapshot.sharePriceNetFromMngFees = sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees));
-  snapshot.sharePriceNetFromPerfFees = sharePrice.times(shareSupply).div(shareSupply.plus(pendingPerfFees));
+  snapshot.netSharePrice = (shareSupply == BigInt.fromI32(0)) ? BigInt.fromI32(1) : sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees).plus(pendingPerfFees));
+  snapshot.sharePriceNetFromMngFees = (shareSupply == BigInt.fromI32(0)) ? BigInt.fromI32(1) : sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees));
+  snapshot.sharePriceNetFromPerfFees = (shareSupply == BigInt.fromI32(0)) ? BigInt.fromI32(1) : sharePrice.times(shareSupply).div(shareSupply.plus(pendingPerfFees));
   snapshot.pendingPerfFees = pendingPerfFees;
   snapshot.pendingMngFees = pendingManagementFees;
   snapshot.timestamp = block.timestamp;
