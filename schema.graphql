@@ -84,8 +84,8 @@ type Vault @entity {
 	positions: [BigInt!]!
 	tvl: BigInt!
 	sharePrice: BigInt!
-	netSharePriceWithMngFees: BigInt! # sharePrice adjusted from pending management fees
-	netSharePriceWithPrfFees: BigInt! # sharePrice adjusted from pending performance fees
+	sharePriceNetFromMngFees: BigInt! # sharePrice adjusted from pending management fees
+	sharePriceNetFromPerfFees: BigInt! # sharePrice adjusted from pending performance fees
 	netSharePrice: BigInt! # sharePrice adjusted from pending performance and management fees
 	# Fees - In shares
 	ongoingPerformanceFees: BigInt!
@@ -107,8 +107,8 @@ type VaultSnapshot @entity {
 
 	positions: [BigInt!]!
 	sharePrice: BigInt!
-	netSharePriceWithMngFees: BigInt! # sharePrice adjusted from pending management fees
-	netSharePriceWithPrfFees: BigInt! # sharePrice adjusted from pending performance fees
+	sharePriceNetFromMngFees: BigInt! # sharePrice adjusted from pending management fees
+	sharePriceNetFromPerfFees: BigInt! # sharePrice adjusted from pending performance fees
 	netSharePrice: BigInt! # sharePrice adjusted from pending performance and management fees
 	tvl: BigInt!
 
