@@ -157,9 +157,9 @@ export const updateVault = (vault: Vault): Vault => {
   vault.ongoingManagementFees = pendingManagementFees;
   vault.ongoingPerformanceFees = pendingPerfFees;
   vault.netSharePrice  = sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees).plus(pendingPerfFees));
-
+  vault.netSharePriceWithMngFees = sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees));
+  vault.netSharePriceWithPrfFees = sharePrice.times(shareSupply).div(shareSupply.plus(pendingPerfFees));
   vault.save();
-
   return vault;
 }
 
@@ -183,6 +183,8 @@ export function _createVault(event: VaultCreated, factory: Factory): Vault {
   vault.rebalancesCount = 0;
   vault.redemptionsCount = 0;
   vault.netSharePrice = BigInt.fromI32(1);
+  vault.netSharePriceWithMngFees = BigInt.fromI32(1);
+  vault.netSharePriceWithPrfFees = BigInt.fromI32(1);
   const updatedVault = updateVault(vault);
   updatedVault.save();
   return vault;
@@ -248,6 +250,8 @@ export function newSnapshot(
   snapshot.tvl = status.value1;
   snapshot.sharePrice = sharePrice;
   snapshot.netSharePrice = sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees).plus(pendingPerfFees));
+  snapshot.netSharePriceWithMngFees = sharePrice.times(shareSupply).div(shareSupply.plus(pendingManagementFees));
+  snapshot.netSharePriceWithPrfFees = sharePrice.times(shareSupply).div(shareSupply.plus(pendingPerfFees));
   snapshot.pendingPerfFees = pendingPerfFees;
   snapshot.pendingMngFees = pendingManagementFees;
   snapshot.timestamp = block.timestamp;
